@@ -149,14 +149,11 @@ class LocalTaskJob(BaseJob):
     def handle_task_exit(self, return_code: int) -> None:
         """Handle case where self.task_runner exits by itself"""
         self.log.info("Task exited with return code %s", return_code)
+        self.log.info("Task exited with return code waleed %s", return_code)
         self.task_instance.refresh_from_db()
         # task exited by itself, so we need to check for error file
         # in case it failed due to runtime exception/error
         error = None
-        if self.task_instance.state == State.RUNNING:
-            # This is for a case where the task received a sigkill
-            # while running
-            self.task_instance.set_state(State.FAILED)
         if self.task_instance.state != State.SUCCESS:
             error = self.task_runner.deserialize_run_error()
         self.task_instance._run_finished_callback(error=error)  # pylint: disable=protected-access
